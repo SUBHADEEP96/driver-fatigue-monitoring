@@ -1,0 +1,14 @@
+[project]
+name = "driver-drowsiness-demo"
+version = "0.1.0"
+description = "Driver-drowsiness-demo project"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "mediapipe==0.10.21",
+    "numpy>=1.26.0,<2",
+    "opencv-python",
+    "python-dotenv",
+    "requests",
+    "streamlit",
+]
