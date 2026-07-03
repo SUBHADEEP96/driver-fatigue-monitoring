@@ -19,9 +19,11 @@ def build_alert_message(detection_result: dict, score: int, risk_level: str) -> 
         "🚨 Driver Alert!\n\n"
         f"Time: {timestamp}\n"
         f"Status: {detection_result['status']}\n"
-        f"Confidence Score: {score}/100\n"
+        f"Risk Score: {score}/100\n"
         f"Risk Level: {risk_level}\n"
-        f"Eyes Closed Duration: {detection_result['closed_duration']:.1f}s\n\n"
+        f"Eyes Closed Duration: {detection_result['closed_duration']:.1f}s\n"
+        f"Yawn Duration: {detection_result.get('yawn_duration', 0.0):.1f}s\n"
+        f"Distraction Duration: {detection_result.get('distraction_duration', 0.0):.1f}s\n\n"
         "Action Required: Please check with the driver immediately."
     )
 
@@ -43,6 +45,9 @@ def draw_overlay(frame, detection_result: dict, score: int, risk_level: str):
     status = detection_result["status"]
     avg_ear = detection_result["avg_ear"]
     closed_duration = detection_result["closed_duration"]
+    yawn_duration = detection_result.get("yawn_duration", 0.0)
+    distraction_duration = detection_result.get("distraction_duration", 0.0)
+    fatigue_events = detection_result.get("fatigue_events", 0)
     face_detected = detection_result["face_detected"]
 
     if risk_level == "SAFE":
@@ -54,7 +59,7 @@ def draw_overlay(frame, detection_result: dict, score: int, risk_level: str):
     else:
         color = (0, 0, 255)
 
-    cv2.rectangle(frame, (10, 10), (650, 215), (0, 0, 0), -1)
+    cv2.rectangle(frame, (10, 10), (720, 250), (0, 0, 0), -1)
 
     cv2.putText(
         frame,
@@ -88,7 +93,7 @@ def draw_overlay(frame, detection_result: dict, score: int, risk_level: str):
 
     cv2.putText(
         frame,
-        f"Confidence Score: {score}/100",
+        f"Risk Score: {score}/100",
         (25, 150),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.85,
@@ -116,6 +121,16 @@ def draw_overlay(frame, detection_result: dict, score: int, risk_level: str):
         2,
     )
 
+    cv2.putText(
+        frame,
+        f"Yawn: {yawn_duration:.1f}s | Distraction: {distraction_duration:.1f}s | Fatigue Events: {fatigue_events}",
+        (25, 235),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.55,
+        (255, 255, 255),
+        2,
+    )
+
     return frame
 
 
@@ -127,7 +142,7 @@ def initialize_session_state():
         st.session_state.last_status = "NOT_STARTED"
 
     if "last_score" not in st.session_state:
-        st.session_state.last_score = 100
+        st.session_state.last_score = 0
 
     if "last_risk_level" not in st.session_state:
         st.session_state.last_risk_level = "SAFE"
@@ -158,7 +173,7 @@ def main():
 
     st.title("🚗 Driver Monitoring Prototype")
     st.caption(
-        "Webcam-based drowsiness detection demo with confidence score, alarm, and optional WhatsApp alert."
+        "Webcam-based fatigue, drowsiness, and distraction detection demo with risk scoring, alarm, and optional WhatsApp alert."
     )
 
     with st.sidebar:
@@ -187,10 +202,10 @@ def main():
         st.markdown(
             """
             1. Click **Start Camera**
-            2. Keep eyes open → status should be **AWAKE**
-            3. Close eyes for 3+ seconds
-            4. Alarm should beep
-            5. Alert count should increase
+            2. Face forward with eyes open → status should be **SAFE**
+            3. Close eyes for 2+ seconds → **DROWSY**
+            4. Yawn repeatedly or blink long → **FATIGUED**
+            5. Look away or leave frame → **DISTRACTED**
             """
         )
 
@@ -199,7 +214,7 @@ def main():
     metric_col_1, metric_col_2, metric_col_3, metric_col_4 = st.columns(4)
 
     metric_col_1.metric("Driver Status", st.session_state.last_status)
-    metric_col_2.metric("Confidence Score", f"{st.session_state.last_score}/100")
+    metric_col_2.metric("Risk Score", f"{st.session_state.last_score}/100")
     metric_col_3.metric("Risk Level", st.session_state.last_risk_level)
     metric_col_4.metric("Alerts Triggered", st.session_state.alert_count)
 
@@ -276,6 +291,9 @@ def main():
                     risk_level=risk_level,
                     avg_ear=detection_result["avg_ear"],
                     closed_duration=detection_result["closed_duration"],
+                    yawn_duration=detection_result.get("yawn_duration", 0.0),
+                    distraction_duration=detection_result.get("distraction_duration", 0.0),
+                    fatigue_events=detection_result.get("fatigue_events", 0),
                 )
 
                 st.session_state.alert_count += 1
