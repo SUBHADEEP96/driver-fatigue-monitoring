@@ -2,7 +2,7 @@ import cv2
 from datetime import datetime
 
 from alerts.alarm import AlarmController
-from alerts.whatsapp_alert import send_whatsapp_alert
+from alerts.ntfy_alert import send_ntfy_alert
 from config.settings import settings
 from detectors.drowsiness_detector import DrowsinessDetector
 from scoring.confidence_score import calculate_confidence_score, get_risk_level
@@ -150,7 +150,7 @@ def main():
 
     print("Driver Monitoring Prototype Started")
     print("Press 'q' to quit")
-    print(f"WhatsApp enabled: {settings.ENABLE_WHATSAPP}")
+    print(f"ntfy topic: {settings.NTFY_TOPIC_URL}")
 
     while True:
         success, frame = cap.read()
@@ -174,7 +174,7 @@ def main():
             alarm_started = alarm_controller.trigger_alarm()
 
             # Only log/send notification when a fresh alarm starts.
-            # This avoids WhatsApp spam every frame.
+            # This avoids ntfy notification spam every frame.
             if alarm_started:
                 alert_message = build_alert_message(
                     detection_result=detection_result,
@@ -184,7 +184,7 @@ def main():
 
                 print(alert_message)
 
-                send_whatsapp_alert(alert_message)
+                send_ntfy_alert(alert_message)
 
                 log_event(
                     status=detection_result["status"],

@@ -20,15 +20,7 @@ class Settings:
     DISTRACTION_SECONDS = float(os.getenv("DISTRACTION_SECONDS", "2.0"))
     NO_FACE_SECONDS = float(os.getenv("NO_FACE_SECONDS", "2.0"))
     ALARM_COOLDOWN_SECONDS = int(os.getenv("ALARM_COOLDOWN_SECONDS", "20"))
-    ENABLE_WHATSAPP = os.getenv("ENABLE_WHATSAPP", "false").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-    WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN", "")
-    WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
-    OWNER_WHATSAPP_NUMBER = os.getenv("OWNER_WHATSAPP_NUMBER", "")
+    NTFY_TOPIC_URL = os.getenv("NTFY_TOPIC_URL", "https://ntfy.sh/driver-FDD")
 
 
 settings = Settings()

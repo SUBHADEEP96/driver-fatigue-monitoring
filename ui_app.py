@@ -5,7 +5,7 @@ import cv2
 import streamlit as st
 
 from alerts.alarm import AlarmController
-from alerts.whatsapp_alert import send_whatsapp_alert
+from alerts.ntfy_alert import send_ntfy_alert
 from config.settings import settings
 from detectors.drowsiness_detector import DrowsinessDetector
 from scoring.confidence_score import calculate_confidence_score, get_risk_level
@@ -173,7 +173,7 @@ def main():
 
     st.title("🚗 Driver Monitoring Prototype")
     st.caption(
-        "Webcam-based fatigue, drowsiness, and distraction detection demo with risk scoring, alarm, and optional WhatsApp alert."
+        "Webcam-based fatigue, drowsiness, and distraction detection demo with risk scoring, alarm, and ntfy.sh alerting."
     )
 
     with st.sidebar:
@@ -194,7 +194,7 @@ def main():
         st.write(f"EAR Threshold: `{settings.EAR_THRESHOLD}`")
         st.write(f"Eye Closed Seconds: `{settings.EYE_CLOSED_SECONDS}`")
         st.write(f"Alarm Cooldown: `{settings.ALARM_COOLDOWN_SECONDS}` sec")
-        st.write(f"WhatsApp Enabled: `{settings.ENABLE_WHATSAPP}`")
+        st.write(f"ntfy Topic: `{settings.NTFY_TOPIC_URL}`")
 
         st.divider()
 
@@ -283,7 +283,7 @@ def main():
                     risk_level=risk_level,
                 )
 
-                send_whatsapp_alert(alert_message)
+                send_ntfy_alert(alert_message)
 
                 log_event(
                     status=detection_result["status"],
