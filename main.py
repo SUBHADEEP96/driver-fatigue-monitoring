@@ -34,11 +34,14 @@ def draw_dashboard(frame, detection_result: dict, score: int, risk_level: str):
     status = detection_result["status"]
     avg_ear = detection_result["avg_ear"]
     closed_duration = detection_result["closed_duration"]
+    yawn_duration = detection_result.get("yawn_duration", 0.0)
+    distraction_duration = detection_result.get("distraction_duration", 0.0)
+    fatigue_events = detection_result.get("fatigue_events", 0)
     face_detected = detection_result["face_detected"]
 
     color = get_risk_color(risk_level)
 
-    cv2.rectangle(frame, (10, 10), (610, 210), (0, 0, 0), -1)
+    cv2.rectangle(frame, (10, 10), (690, 245), (0, 0, 0), -1)
 
     cv2.putText(
         frame,
@@ -72,7 +75,7 @@ def draw_dashboard(frame, detection_result: dict, score: int, risk_level: str):
 
     cv2.putText(
         frame,
-        f"Confidence Score: {score}/100",
+        f"Risk Score: {score}/100",
         (25, 145),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.8,
@@ -100,6 +103,16 @@ def draw_dashboard(frame, detection_result: dict, score: int, risk_level: str):
         2,
     )
 
+    cv2.putText(
+        frame,
+        f"Yawn: {yawn_duration:.1f}s | Distraction: {distraction_duration:.1f}s | Fatigue Events: {fatigue_events}",
+        (25, 235),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.55,
+        (255, 255, 255),
+        2,
+    )
+
 
 def build_alert_message(detection_result: dict, score: int, risk_level: str) -> str:
     """
@@ -112,9 +125,11 @@ def build_alert_message(detection_result: dict, score: int, risk_level: str) -> 
         "🚨 Driver Alert!\n\n"
         f"Time: {timestamp}\n"
         f"Status: {detection_result['status']}\n"
-        f"Confidence Score: {score}/100\n"
+        f"Risk Score: {score}/100\n"
         f"Risk Level: {risk_level}\n"
-        f"Eyes Closed Duration: {detection_result['closed_duration']:.1f}s\n\n"
+        f"Eyes Closed Duration: {detection_result['closed_duration']:.1f}s\n"
+        f"Yawn Duration: {detection_result.get('yawn_duration', 0.0):.1f}s\n"
+        f"Distraction Duration: {detection_result.get('distraction_duration', 0.0):.1f}s\n\n"
         "Action Required: Please check with the driver immediately."
     )
 
@@ -177,6 +192,9 @@ def main():
                     risk_level=risk_level,
                     avg_ear=detection_result["avg_ear"],
                     closed_duration=detection_result["closed_duration"],
+                    yawn_duration=detection_result.get("yawn_duration", 0.0),
+                    distraction_duration=detection_result.get("distraction_duration", 0.0),
+                    fatigue_events=detection_result.get("fatigue_events", 0),
                 )
 
         cv2.imshow("Driver Monitoring Prototype", frame)
